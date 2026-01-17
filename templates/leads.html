@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Lead suggestions</h1>
+    <p class="muted">Generated leads based on relevance scoring and available contacts.</p>
+    <div class="actions">
+        <form method="post" action="/leads/generate" class="inline">
+            <button class="btn" type="submit">Generate suggestions</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Leads</h2>
+    <form method="get" class="grid grid-2" style="margin-bottom: 1rem;">
+        <div>
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="">All</option>
+                {% for status in statuses %}
+                <option value="{{ status.value }}" {% if selected_status == status.value %}selected{% endif %}>{{ status.value | title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Apply</button>
+        </div>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Target</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Tags</th>
+                <th>Evidence</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lead in leads %}
+            <tr>
+                <td>{{ lead.candidate_target_data.get("name", "-") }}</td>
+                <td>{{ lead.score }}</td>
+                <td><span class="tag status">{{ lead.status.value | replace("_", " ") | title }}</span></td>
+                <td>{{ lead.relevance_tags | join(", ") }}</td>
+                <td>
+                    {% for link in lead.evidence_links %}
+                    <a href="{{ link }}" target="_blank">Link</a>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if lead.status.value == "new" %}
+                    <form method="post" action="/leads/{{ lead.id }}/accept" class="inline">
+                        <button class="btn small" type="submit">Accept</button>
+                    </form>
+                    <form method="post" action="/leads/{{ lead.id }}/reject" class="inline">
+                        <input type="text" name="reason" placeholder="Rejection reason" required />
+                        <button class="btn small secondary" type="submit">Reject</button>
+                    </form>
+                    {% else %}
+                    <span class="muted">{{ lead.rejection_reason or "" }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="muted">No lead suggestions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

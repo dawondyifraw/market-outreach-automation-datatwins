@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Imports</h1>
+    <p class="muted">Upload CSVs to ingest municipalities and contacts.</p>
+    {% if message %}
+    <div class="notice">{{ message }}</div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Municipalities CSV</h2>
+    <form method="post" action="/import/municipalities" enctype="multipart/form-data" class="grid grid-2">
+        <div>
+            <label>CSV file</label>
+            <input type="file" name="file" accept=".csv" required />
+            <p class="muted">Required: name. Recommended: province, website, general_email, phone, source.</p>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Import municipalities</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Contacts CSV</h2>
+    <form method="post" action="/import/contacts" enctype="multipart/form-data" class="grid grid-2">
+        <div>
+            <label>CSV file</label>
+            <input type="file" name="file" accept=".csv" required />
+            <p class="muted">Required: target_name or target_id. Recommended: full_name, role, email, phone, linkedin_url.</p>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Import contacts</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Import history</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Inserted</th>
+                <th>Updated</th>
+                <th>Skipped</th>
+                <th>Failed</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.import_type }}</td>
+                <td>{{ log.inserted }}</td>
+                <td>{{ log.updated }}</td>
+                <td>{{ log.skipped }}</td>
+                <td>{{ log.failed }}</td>
+                <td>{{ log.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="muted">No imports recorded yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

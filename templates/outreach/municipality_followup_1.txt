@@ -1,0 +1,10 @@
+Subject: Following up on digital-twin support for {target_name}
+
+Hello {contact_name},
+
+I wanted to follow up on my earlier note about digital-twin support for municipalities. If helpful, I can share a short overview tailored to {target_name} and the current priorities in {province}. {municipality_case_study_url}
+
+If you are not the right person, could you point me to who handles innovation or data initiatives?
+
+Kind regards,
+[Your Name]

@@ -1,0 +1,12 @@
+Subject: Exploring data-led outreach for {target_name}
+
+Hello {contact_name},
+
+I’m reaching out to share how we support public-sector employers with digital-twin and data-led outreach programmes. {value_prop}
+
+If helpful, I can share a brief case study and a suggested roadmap. {case_study_url}
+
+Would {cta} be useful to discuss this further?
+
+Kind regards,
+[Your Name]

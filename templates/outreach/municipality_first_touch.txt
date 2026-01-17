@@ -1,0 +1,12 @@
+Subject: Supporting {target_name} with digital-twin insights
+
+Hello {contact_name},
+
+I hope you are well. I'm reaching out to share how we support Dutch municipalities with digital-twin and data-driven programmes for asset management and public services.
+
+We recently helped another municipality improve planning and reporting through a structured data approach. {municipality_case_study_url}
+
+Would {cta} be useful for {target_name}? {value_prop}
+
+Kind regards,
+[Your Name]

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Draft #{{ draft.id }}</h1>
+    <p class="muted">Target: {{ draft.target.name if draft.target else '-' }} · Channel: {{ draft.channel.value | title }} · Status: {{ draft.status.value | replace("_", " ") | title }}</p>
+    {% if draft.missing_fields %}
+    <div class="notice">
+        <strong>Warnings:</strong>
+        <ul>
+            {% for warning in draft.missing_fields %}
+            <li>{{ warning }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Final content</h2>
+    <p><strong>Subject:</strong> {{ draft.final_subject or '-' }}</p>
+    <pre>{{ draft.final_body or '-' }}</pre>
+</div>
+
+<div class="card">
+    <h2>Approval</h2>
+    {% if draft.status.value in ["draft", "queued"] %}
+    {% if draft.status.value == "draft" %}
+    <form method="post" action="/drafts/{{ draft.id }}/queue" class="inline" style="margin-bottom: 1rem;">
+        <button class="btn secondary" type="submit">Queue for approval</button>
+    </form>
+    {% endif %}
+    <form method="post" action="/drafts/{{ draft.id }}/approve" class="grid grid-2">
+        <div>
+            <label for="approved_by">Approved by</label>
+            <input name="approved_by" id="approved_by" required />
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Approve draft</button>
+        </div>
+    </form>
+    {% else %}
+    <p class="muted">Approved by {{ draft.approved_by or "-" }} at {{ draft.approved_at or "-" }}.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Send</h2>
+    <p class="muted">Preview mode is {{ "on" if preview_mode else "off" }}.</p>
+    {% if draft.status.value == "approved" %}
+    <form method="post" action="/drafts/{{ draft.id }}/send">
+        <button class="btn" type="submit">Send now</button>
+    </form>
+    {% else %}
+    <p class="muted">Draft must be approved before sending.</p>
+    {% endif %}
+    {% if draft.send_error %}
+    <p class="notice">Send error: {{ draft.send_error }}</p>
+    {% endif %}
+</div>
+{% endblock %}

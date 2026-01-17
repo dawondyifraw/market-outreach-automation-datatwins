@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Do-not-contact list</h1>
+    <p class="muted">Global list of emails or domains that must not be contacted.</p>
+</div>
+
+<div class="card">
+    <h2>Add entry</h2>
+    <form method="post" action="/dnc" class="grid grid-2">
+        <div>
+            <label for="value">Email or domain</label>
+            <input name="value" id="value" required />
+        </div>
+        <div>
+            <label for="reason">Reason</label>
+            <input name="reason" id="reason" />
+        </div>
+        <div>
+            <button class="btn" type="submit">Add</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Entries</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Value</th>
+                <th>Reason</th>
+                <th>Added</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.value }}</td>
+                <td>{{ entry.reason or '-' }}</td>
+                <td>{{ entry.created_at.strftime("%Y-%m-%d") }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" class="muted">No entries yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
