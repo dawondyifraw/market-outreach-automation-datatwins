@@ -2,11 +2,10 @@
 {% block content %}
 <div class="card">
     <h1>{{ target.name }}</h1>
-    <p class="muted">{{ target.type.value | title }} · {{ target.sector or "No sector" }} · {{ target.province or "No province" }}</p>
+    <p class="muted">{{ target.type.value | title }} · {{ target.sector or "No sector" }}</p>
     <p>{{ target.notes or "" }}</p>
-    <p class="muted">General email: {{ target.general_email or "-" }} · Phone: {{ target.phone or "-" }} · DNC: {{ "Yes" if target.do_not_contact else "No" }}</p>
     <div class="actions">
-        <a class="btn" href="/outreach/new?target_id={{ target.id }}">Create outreach draft</a>
+        <a class="btn" href="/outreach/new?target_id={{ target.id }}">Create outreach email</a>
         <a class="btn secondary" href="/targets">Back to list</a>
     </div>
 </div>
@@ -40,8 +39,6 @@
                 <th>Email</th>
                 <th>Phone</th>
                 <th>LinkedIn</th>
-                <th>Confidence</th>
-                <th>DNC</th>
             </tr>
         </thead>
         <tbody>
@@ -56,12 +53,10 @@
                     <a href="{{ contact.linkedin_url }}" target="_blank">Profile</a>
                     {% else %}-{% endif %}
                 </td>
-                <td>{{ contact.confidence_score.value | title }}</td>
-                <td>{{ "Yes" if contact.do_not_contact else "No" }}</td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="7" class="muted">No contacts added yet.</td>
+                <td colspan="5" class="muted">No contacts added yet.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -89,20 +84,6 @@
             <label for="linkedin_url">LinkedIn URL</label>
             <input name="linkedin_url" id="linkedin_url" />
         </div>
-        <div>
-            <label for="confidence_score">Confidence</label>
-            <select name="confidence_score" id="confidence_score">
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-            </select>
-        </div>
-        <div>
-            <label for="contact_dnc">
-                <input type="checkbox" name="do_not_contact" id="contact_dnc" />
-                Do not contact
-            </label>
-        </div>
         <div style="display:flex; align-items:flex-end;">
             <button class="btn" type="submit">Add contact</button>
         </div>
@@ -111,9 +92,6 @@
 
 <div class="card">
     <h2>Outreach events</h2>
-    {% if suggested_followup %}
-    <p class="notice">Suggested follow-up date: {{ suggested_followup }}</p>
-    {% endif %}
     <table>
         <thead>
             <tr>
@@ -122,37 +100,26 @@
                 <th>Contact</th>
                 <th>Subject</th>
                 <th>Outcome</th>
-                <th>Update</th>
             </tr>
         </thead>
         <tbody>
             {% for event in events %}
             <tr>
-                <td>{{ event.occurred_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ event.sent_at.strftime("%Y-%m-%d") }}</td>
                 <td>{{ event.channel.value | title }}</td>
                 <td>{{ event.contact.full_name if event.contact else '-' }}</td>
                 <td>{{ event.subject or '-' }}</td>
                 <td>{{ event.outcome.value | replace("_", " ") | title }}</td>
-                <td>
-                    <form method="post" action="/events/{{ event.id }}/outcome" class="inline">
-                        <select name="outcome">
-                            {% for value in ["no_reply", "reply", "meeting_set", "redirected", "rejected"] %}
-                            <option value="{{ value }}" {% if event.outcome.value == value %}selected{% endif %}>{{ value | replace("_", " ") | title }}</option>
-                            {% endfor %}
-                        </select>
-                        <button class="btn small" type="submit">Save</button>
-                    </form>
-                </td>
             </tr>
             <tr>
-                <td colspan="6">
+                <td colspan="5">
                     <strong>Body</strong>
                     <pre>{{ event.body }}</pre>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" class="muted">No outreach events yet.</td>
+                <td colspan="5" class="muted">No outreach events yet.</td>
             </tr>
             {% endfor %}
         </tbody>

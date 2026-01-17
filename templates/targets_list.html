@@ -75,34 +75,12 @@
             <input name="sector" id="sector" />
         </div>
         <div>
-            <label for="province">Province</label>
-            <input name="province" id="province" />
-        </div>
-        <div>
             <label for="website">Website</label>
             <input name="website" id="website" />
-        </div>
-        <div>
-            <label for="general_email">General email</label>
-            <input name="general_email" id="general_email" />
-        </div>
-        <div>
-            <label for="phone">Phone</label>
-            <input name="phone" id="phone" />
-        </div>
-        <div>
-            <label for="source">Source</label>
-            <input name="source" id="source" />
         </div>
         <div class="grid" style="grid-column:1/-1;">
             <label for="notes">Notes</label>
             <textarea name="notes" id="notes" rows="3"></textarea>
-        </div>
-        <div>
-            <label for="do_not_contact">
-                <input type="checkbox" name="do_not_contact" id="do_not_contact" />
-                Do not contact
-            </label>
         </div>
         <div>
             <button class="btn" type="submit">Save target</button>
@@ -112,8 +90,20 @@
 
 <div class="card">
     <h2>Import data</h2>
-    <p class="muted">Use the imports page for municipality and contact CSV uploads.</p>
-    <a class="btn secondary" href="/imports">Go to imports</a>
+    <div class="grid grid-2">
+        <form method="post" action="/import/targets" enctype="multipart/form-data">
+            <label>Targets CSV</label>
+            <input type="file" name="file" accept=".csv" required />
+            <p class="muted">Headers: name,type,sector,website,notes,status</p>
+            <button class="btn secondary" type="submit">Import targets</button>
+        </form>
+        <form method="post" action="/import/contacts" enctype="multipart/form-data">
+            <label>Contacts CSV</label>
+            <input type="file" name="file" accept=".csv" required />
+            <p class="muted">Headers: target_id,full_name,role,email,phone,linkedin_url</p>
+            <button class="btn secondary" type="submit">Import contacts</button>
+        </form>
+    </div>
 </div>
 
 <div class="card">
@@ -125,9 +115,7 @@
                 <th>Type</th>
                 <th>Status</th>
                 <th>Sector</th>
-                <th>Province</th>
                 <th>Website</th>
-                <th>Email</th>
                 <th></th>
             </tr>
         </thead>
@@ -138,18 +126,16 @@
                 <td><span class="tag">{{ target.type.value | title }}</span></td>
                 <td><span class="tag status">{{ target.status.value | replace("_", " ") | title }}</span></td>
                 <td>{{ target.sector or '-' }}</td>
-                <td>{{ target.province or '-' }}</td>
                 <td>
                     {% if target.website %}
                     <a href="{{ target.website }}" target="_blank">{{ target.website }}</a>
                     {% else %}-{% endif %}
                 </td>
-                <td>{{ target.general_email or '-' }}</td>
                 <td><a class="btn small" href="/targets/{{ target.id }}">View</a></td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="8" class="muted">No targets yet. Add or import some to get started.</td>
+                <td colspan="6" class="muted">No targets yet. Add or import some to get started.</td>
             </tr>
             {% endfor %}
         </tbody>
