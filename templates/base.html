@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title or "Outreach CRM" }}</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+        header {
+            background: #111827;
+            color: #fff;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        main {
+            padding: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            margin-bottom: 1.5rem;
+        }
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.95rem;
+        }
+        th {
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #e0f2fe;
+            color: #075985;
+        }
+        .tag.status {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #111827;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn.secondary {
+            background: #fff;
+            color: #111827;
+        }
+        .btn.small {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.85rem;
+        }
+        form.inline {
+            display: inline;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 0.95rem;
+        }
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .muted {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .notice {
+            background: #ecfeff;
+            border-left: 4px solid #06b6d4;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <a href="/targets">Outreach CRM</a>
+        </div>
+        <nav class="actions">
+            <a class="btn secondary" href="/targets">Targets</a>
+            <a class="btn secondary" href="/export/targets">Export CSV</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

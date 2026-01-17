@@ -1,0 +1,12 @@
+Subject: Introduction to support your outreach goals
+
+Hello {contact_name},
+
+I hope you are well. I'm reaching out from DataTwins to share how we help Dutch employers and municipalities improve employer outreach with a structured CRM and follow-up workflow. {value_prop}
+
+If helpful, I can share a short overview or a quick example of how teams similar to {target_name} are improving response rates. {case_study_url}
+
+Would you be open to a 20-minute call next week?
+
+Kind regards,
+[Your Name]

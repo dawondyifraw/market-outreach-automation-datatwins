@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Create outreach email</h1>
+    <p class="muted">Choose a template and personalise the message before logging the outreach event.</p>
+</div>
+
+<div class="card">
+    <form method="post" action="/outreach" class="grid grid-2">
+        <input type="hidden" name="target_id" value="{{ target.id }}" />
+        <div>
+            <label>Target</label>
+            <input value="{{ target.name }}" disabled />
+        </div>
+        <div>
+            <label for="contact_id">Contact</label>
+            <select name="contact_id" id="contact_id">
+                <option value="">General</option>
+                {% for contact in contacts %}
+                <option value="{{ contact.id }}" {% if selected_contact_id == contact.id %}selected{% endif %}>
+                    {{ contact.full_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="template_name">Template</label>
+            <select name="template_name" id="template_name" required>
+                {% for template in templates %}
+                <option value="{{ template.name }}">{{ template.name | replace("_", " ") | title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="channel">Channel</label>
+            <select name="channel" id="channel">
+                {% for channel in channels %}
+                <option value="{{ channel.value }}">{{ channel.value | title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="subject">Subject</label>
+            <input name="subject" id="subject" placeholder="Optional email subject" />
+        </div>
+        <div>
+            <label for="value_prop">Value proposition</label>
+            <input name="value_prop" id="value_prop" placeholder="e.g. Streamlined local hiring outreach" />
+        </div>
+        <div>
+            <label for="case_study_url">Case study URL</label>
+            <input name="case_study_url" id="case_study_url" placeholder="https://" />
+        </div>
+        <div class="grid" style="grid-column:1/-1;">
+            <label for="custom_body">Custom body (optional)</label>
+            <textarea name="custom_body" id="custom_body" rows="8" placeholder="Leave blank to auto-fill from template"></textarea>
+        </div>
+        <div>
+            <button class="btn" type="submit">Log outreach event</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

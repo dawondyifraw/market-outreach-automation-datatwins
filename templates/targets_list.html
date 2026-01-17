@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Targets</h1>
+    <p class="muted">Track employers and municipalities, manage outreach, and stay on top of follow-ups.</p>
+    {% if message %}
+    <div class="notice">{{ message }}</div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Pipeline overview</h2>
+    <div class="grid grid-2">
+        {% for status in target_statuses %}
+        <div>
+            <div class="muted">{{ status.value | replace("_", " ") | title }}</div>
+            <div class="tag status">{{ pipeline_counts.get(status, 0) }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h2>Filters</h2>
+    <form method="get" class="grid grid-2">
+        <div>
+            <label for="type">Type</label>
+            <select name="target_type" id="type">
+                <option value="">All</option>
+                {% for value in target_types %}
+                <option value="{{ value.value }}" {% if filters.type == value.value %}selected{% endif %}>
+                    {{ value.value | title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="">All</option>
+                {% for value in target_statuses %}
+                <option value="{{ value.value }}" {% if filters.status == value.value %}selected{% endif %}>
+                    {{ value.value | replace("_", " ") | title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="search">Search</label>
+            <input type="text" name="search" id="search" value="{{ filters.search or '' }}" placeholder="Name or sector" />
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Apply</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Add target</h2>
+    <form method="post" action="/targets" class="grid grid-2">
+        <div>
+            <label for="name">Name</label>
+            <input name="name" id="name" required />
+        </div>
+        <div>
+            <label for="type-create">Type</label>
+            <select name="type" id="type-create" required>
+                {% for value in target_types %}
+                <option value="{{ value.value }}">{{ value.value | title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="sector">Sector</label>
+            <input name="sector" id="sector" />
+        </div>
+        <div>
+            <label for="website">Website</label>
+            <input name="website" id="website" />
+        </div>
+        <div class="grid" style="grid-column:1/-1;">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes" rows="3"></textarea>
+        </div>
+        <div>
+            <button class="btn" type="submit">Save target</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Import data</h2>
+    <div class="grid grid-2">
+        <form method="post" action="/import/targets" enctype="multipart/form-data">
+            <label>Targets CSV</label>
+            <input type="file" name="file" accept=".csv" required />
+            <p class="muted">Headers: name,type,sector,website,notes,status</p>
+            <button class="btn secondary" type="submit">Import targets</button>
+        </form>
+        <form method="post" action="/import/contacts" enctype="multipart/form-data">
+            <label>Contacts CSV</label>
+            <input type="file" name="file" accept=".csv" required />
+            <p class="muted">Headers: target_id,full_name,role,email,phone,linkedin_url</p>
+            <button class="btn secondary" type="submit">Import contacts</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Targets list</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Sector</th>
+                <th>Website</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for target in targets %}
+            <tr>
+                <td>{{ target.name }}</td>
+                <td><span class="tag">{{ target.type.value | title }}</span></td>
+                <td><span class="tag status">{{ target.status.value | replace("_", " ") | title }}</span></td>
+                <td>{{ target.sector or '-' }}</td>
+                <td>
+                    {% if target.website %}
+                    <a href="{{ target.website }}" target="_blank">{{ target.website }}</a>
+                    {% else %}-{% endif %}
+                </td>
+                <td><a class="btn small" href="/targets/{{ target.id }}">View</a></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="muted">No targets yet. Add or import some to get started.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
