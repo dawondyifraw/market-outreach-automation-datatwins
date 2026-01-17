@@ -1,0 +1,12 @@
+Subject: Introduction and potential collaboration with {target_name}
+
+Hello {contact_name},
+
+We were referred to {target_name} as a team working on digital-twin and data platforms for public-sector organisations. {value_prop}
+
+If there is interest, I can share a short overview and a relevant case study. {case_study_url}
+
+Would {cta} make sense to explore this together?
+
+Kind regards,
+[Your Name]

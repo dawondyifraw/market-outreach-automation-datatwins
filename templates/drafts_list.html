@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Outreach drafts</h1>
+    <p class="muted">Drafts must be approved before sending.</p>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Target</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Updated</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for draft in drafts %}
+            <tr>
+                <td>#{{ draft.id }}</td>
+                <td>{{ draft.target.name if draft.target else '-' }}</td>
+                <td>{{ draft.contact.full_name if draft.contact else '-' }}</td>
+                <td><span class="tag status">{{ draft.status.value | replace("_", " ") | title }}</span></td>
+                <td>{{ draft.updated_at.strftime("%Y-%m-%d") }}</td>
+                <td><a class="btn small" href="/drafts/{{ draft.id }}">View</a></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="muted">No drafts yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

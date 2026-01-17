@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Metrics</h1>
+    <p class="muted">Performance metrics based on outreach events.</p>
+</div>
+
+<div class="card">
+    <h2>Reply rate by template</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Template</th>
+                <th>Total</th>
+                <th>Replies</th>
+                <th>Reply rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for template, data in totals_by_template.items() %}
+            <tr>
+                <td>{{ template }}</td>
+                <td>{{ data.total }}</td>
+                <td>{{ data.replies }}</td>
+                <td>{{ ((data.replies / data.total) * 100) | round(2) if data.total else 0 }}%</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="muted">No outreach events yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Reply rate by contact confidence</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Confidence</th>
+                <th>Total</th>
+                <th>Replies</th>
+                <th>Reply rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for confidence, data in totals_by_confidence.items() %}
+            <tr>
+                <td>{{ confidence | title }}</td>
+                <td>{{ data.total }}</td>
+                <td>{{ data.replies }}</td>
+                <td>{{ ((data.replies / data.total) * 100) | round(2) if data.total else 0 }}%</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="muted">No contact outcomes yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Response timing & conversion</h2>
+    <p class="muted">Average time to reply: {{ avg_time_to_reply if avg_time_to_reply is not none else "-" }} days</p>
+    <p class="muted">Conversion to meeting: {{ conversion_rate }}%</p>
+    <p class="muted">Drafts created: {{ draft_count }}</p>
+</div>
+{% endblock %}

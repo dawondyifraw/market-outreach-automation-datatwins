@@ -1,4 +1,4 @@
-.PHONY: setup dev test
+.PHONY: setup dev test import
 
 setup:
 	python -m pip install --upgrade pip
@@ -9,3 +9,6 @@ dev:
 
 test:
 	pytest
+
+import:
+	python scripts/import_municipalities_csv.py data/municipalities.csv
