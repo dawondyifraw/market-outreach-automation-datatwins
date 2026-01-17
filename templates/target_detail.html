@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>{{ target.name }}</h1>
+    <p class="muted">{{ target.type.value | title }} · {{ target.sector or "No sector" }}</p>
+    <p>{{ target.notes or "" }}</p>
+    <div class="actions">
+        <a class="btn" href="/outreach/new?target_id={{ target.id }}">Create outreach email</a>
+        <a class="btn secondary" href="/targets">Back to list</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Update status</h2>
+    <form method="post" action="/targets/{{ target.id }}/status" class="grid grid-2">
+        <div>
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                {% for value in target_statuses %}
+                <option value="{{ value.value }}" {% if target.status == value %}selected{% endif %}>
+                    {{ value.value | replace("_", " ") | title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Update</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Contacts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>LinkedIn</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contact in contacts %}
+            <tr>
+                <td>{{ contact.full_name }}</td>
+                <td>{{ contact.role or '-' }}</td>
+                <td>{{ contact.email or '-' }}</td>
+                <td>{{ contact.phone or '-' }}</td>
+                <td>
+                    {% if contact.linkedin_url %}
+                    <a href="{{ contact.linkedin_url }}" target="_blank">Profile</a>
+                    {% else %}-{% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="muted">No contacts added yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add contact</h3>
+    <form method="post" action="/targets/{{ target.id }}/contacts" class="grid grid-2">
+        <div>
+            <label for="full_name">Full name</label>
+            <input name="full_name" id="full_name" required />
+        </div>
+        <div>
+            <label for="role">Role</label>
+            <input name="role" id="role" />
+        </div>
+        <div>
+            <label for="email">Email</label>
+            <input name="email" id="email" />
+        </div>
+        <div>
+            <label for="phone">Phone</label>
+            <input name="phone" id="phone" />
+        </div>
+        <div>
+            <label for="linkedin_url">LinkedIn URL</label>
+            <input name="linkedin_url" id="linkedin_url" />
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Add contact</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Outreach events</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Channel</th>
+                <th>Contact</th>
+                <th>Subject</th>
+                <th>Outcome</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.sent_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ event.channel.value | title }}</td>
+                <td>{{ event.contact.full_name if event.contact else '-' }}</td>
+                <td>{{ event.subject or '-' }}</td>
+                <td>{{ event.outcome.value | replace("_", " ") | title }}</td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <strong>Body</strong>
+                    <pre>{{ event.body }}</pre>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="muted">No outreach events yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Follow-ups</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Due date</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for followup in followups %}
+            <tr>
+                <td>{{ followup.due_date }}</td>
+                <td>{{ followup.reason or '-' }}</td>
+                <td>{{ "Done" if followup.done else "Pending" }}</td>
+                <td>
+                    {% if not followup.done %}
+                    <form method="post" action="/followups/{{ followup.id }}/done" class="inline">
+                        <button class="btn small" type="submit">Mark done</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="muted">No follow-ups scheduled.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add follow-up</h3>
+    <form method="post" action="/targets/{{ target.id }}/followups" class="grid grid-2">
+        <div>
+            <label for="due_date">Due date</label>
+            <input type="date" name="due_date" id="due_date" required />
+        </div>
+        <div>
+            <label for="reason">Reason</label>
+            <input name="reason" id="reason" />
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+            <button class="btn" type="submit">Add follow-up</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
