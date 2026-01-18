@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-os.environ["DATABASE_URL"] = "sqlite:///./test_outreach.db"
+os.environ["DATABASE_URL"] = "sqlite:///./test_importers.db"
 
 from sqlmodel import Session, delete, select
 
@@ -22,6 +22,19 @@ from app.models import (
     Target,
     TargetType,
 )
+
+
+def setup_module(module):
+    db_path = Path("./test_importers.db")
+    if db_path.exists():
+        db_path.unlink()
+    init_db()
+
+
+def teardown_module(module):
+    db_path = Path("./test_importers.db")
+    if db_path.exists():
+        db_path.unlink()
 
 
 def reset_db() -> None:

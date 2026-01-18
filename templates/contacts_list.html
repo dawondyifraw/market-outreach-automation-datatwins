@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Header Card -->
+<div class="card">
+    <h1 style="margin: 0; font-size: 1.5rem;">👥 Contacts</h1>
+    <p class="muted">Manage 11,323 contacts across all municipalities. Search, filter, and segment.</p>
+    {% if message %}
+    <div class="notice">{{ message }}</div>
+    {% endif %}
+</div>
+
+<!-- Statistics Overview -->
+<div class="card">
+    <h2>📊 Contact Statistics</h2>
+    <div class="grid grid-3">
+        <div style="padding: 1rem; background: var(--surface); border-radius: 8px; text-align: center;">
+            <div class="muted">Total Contacts</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem;">
+                {{ "{:,}".format(total_results) }}
+            </div>
+        </div>
+        <div style="padding: 1rem; background: var(--surface); border-radius: 8px; text-align: center;">
+            <div class="muted">Unique Roles</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem;">
+                {{ roles | length }}
+            </div>
+        </div>
+        <div style="padding: 1rem; background: var(--surface); border-radius: 8px; text-align: center;">
+            <div class="muted">Pages</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem;">
+                {{ pagination.total_pages }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Filters -->
+<div class="card">
+    <h2>🔍 Search & Filter</h2>
+    <form method="get" class="grid grid-3">
+        <!-- Text Search -->
+        <div>
+            <label for="search">Search by Name, Email, Phone</label>
+            <input type="text" name="search" id="search" value="{{ filters.search or '' }}" placeholder="Search..." />
+        </div>
+
+        <!-- Role Filter -->
+        <div>
+            <label for="role">Role (Position)</label>
+            <select name="role" id="role">
+                <option value="">All Roles</option>
+                {% for r in roles %}
+                <option value="{{ r }}" {% if filters.role==r %}selected{% endif %}>
+                    {{ r }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Email Filter -->
+        <div>
+            <label for="has_email">Email Status</label>
+            <select name="has_email" id="has_email">
+                <option value="">Any</option>
+                <option value="true" {% if filters.has_email=="true" %}selected{% endif %}>Has Email</option>
+                <option value="false" {% if filters.has_email=="false" %}selected{% endif %}>No Email</option>
+            </select>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex; gap:10px; align-items:flex-end;">
+            <button class="btn" type="submit">🔍 Search</button>
+            <a href="/contacts" class="btn secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Contacts Table -->
+<div class="card">
+    <h2>Contacts ({{ pagination.total_results }} total)</h2>
+    <div class="muted" style="margin-bottom: 15px;">
+        Page {{ pagination.current_page }} of {{ pagination.total_pages }}
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>LinkedIn</th>
+                <th>Target</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contact in contacts %}
+            <tr>
+                <td><strong>{{ contact.full_name }}</strong></td>
+                <td>
+                    {% if contact.role_en %}
+                    <span class="tag">{{ contact.role_en }}</span>
+                    {% elif contact.role %}
+                    <span class="tag">{{ contact.role }}</span>
+                    {% else %}
+                    <span class="muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if contact.email %}
+                    <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                    {% else %}
+                    <span class="muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if contact.phone %}
+                    <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+                    {% else %}
+                    <span class="muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if contact.linkedin_url %}
+                    <a href="{{ contact.linkedin_url }}" target="_blank">🔗</a>
+                    {% else %}
+                    <span class="muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if contact.target %}
+                    <a href="/targets/{{ contact.target.id }}" class="btn small">{{ contact.target.name }}</a>
+                    {% else %}
+                    <span class="muted">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="muted">No contacts found. Try adjusting your filters.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    {% if pagination.total_pages > 1 %}
+    <div class="pagination" style="margin-top: 20px;">
+        {% if pagination.has_prev %}
+        <a href="/contacts?page={{ pagination.current_page - 1 }}&search={{ filters.search or '' }}&role={{ filters.role or '' }}&has_email={{ filters.has_email or '' }}"
+            class="btn small">← Previous</a>
+        {% endif %}
+
+        <div class="muted" style="padding: 8px;">
+            Page {{ pagination.current_page }} of {{ pagination.total_pages }}
+        </div>
+
+        {% if pagination.has_next %}
+        <a href="/contacts?page={{ pagination.current_page + 1 }}&search={{ filters.search or '' }}&role={{ filters.role or '' }}&has_email={{ filters.has_email or '' }}"
+            class="btn small">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

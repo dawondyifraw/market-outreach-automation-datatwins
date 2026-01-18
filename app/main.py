@@ -3,13 +3,23 @@ from __future__ import annotations
 from datetime import date, datetime
 import csv
 import io
+import os
+import logging
+import smtplib
+import re
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from typing import Any, Iterable
 
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import FastAPI, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from dotenv import load_dotenv
+
+load_dotenv()
+logger = logging.getLogger(__name__)
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_, func
@@ -46,6 +56,45 @@ class SafeDict(dict):
         return ""
 
 
+def send_email(to_email: str, subject: str, body: str) -> bool:
+    """Send email via SMTP. Configure via environment variables:
+    - SMTP_SERVER: SMTP server address
+    - SMTP_PORT: SMTP port (default: 587)
+    - SMTP_USER: Sender email address
+    - SMTP_PASSWORD: SMTP password
+    
+    If not configured, logs email instead of sending.
+    """
+    smtp_server = os.getenv("SMTP_SERVER")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    sender_email = os.getenv("SMTP_USER")
+    sender_password = os.getenv("SMTP_PASSWORD")
+
+    # If SMTP not configured, log instead
+    if not all([smtp_server, sender_email, sender_password]):
+        logger.info(f"Email to {to_email}: {subject}\n{body}")
+        return False
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        text = msg.as_string()
+        server.sendmail(sender_email, to_email, text)
+        server.quit()
+        logger.info(f"Email sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Email send failed: {str(e)}")
+        return False
+
+
 def load_outreach_templates() -> list[dict[str, str]]:
     template_files = sorted(OUTREACH_TEMPLATE_DIR.glob("*.txt"))
     templates_data = []
@@ -62,6 +111,22 @@ def render_template_text(filename: str, context: dict[str, Any]) -> str:
     return content.format_map(SafeDict(context))
 
 
+def normalize_search_term(term: str) -> str:
+    """Normalize a search string for loose matching (e.g., "denbosch" -> "denbosch")."""
+    return re.sub(r"[^0-9a-zA-Z]+", "", term).lower()
+
+
+def normalized_text_expr(expr: Any) -> Any:
+    """Return a SQL expression with common separators stripped for fuzzy matches."""
+    cleaned = func.replace(expr, " ", "")
+    cleaned = func.replace(cleaned, "-", "")
+    cleaned = func.replace(cleaned, "'", "")
+    cleaned = func.replace(cleaned, ".", "")
+    cleaned = func.replace(cleaned, ",", "")
+    cleaned = func.replace(cleaned, "/", "")
+    return func.lower(cleaned)
+
+
 @app.get("/", response_class=HTMLResponse)
 def root() -> RedirectResponse:
     return RedirectResponse(url="/targets")
@@ -73,26 +138,82 @@ def list_targets(
     target_type: str | None = None,
     status: str | None = None,
     search: str | None = None,
+    province: str | None = None,
+    sector: str | None = None,
+    role: str | None = None,
+    has_email: str | None = None,
     message: str | None = None,
+    page: int = 1,
 ) -> HTMLResponse:
     with get_session() as session:
         statement = select(Target)
+        
+        # Type filter
         if target_type:
             try:
                 statement = statement.where(Target.type == TargetType(target_type))
             except ValueError:
                 target_type = None
+        
+        # Status filter
         if status:
             try:
                 statement = statement.where(Target.status == TargetStatus(status))
             except ValueError:
                 status = None
+        
+        # Province filter
+        if province:
+            statement = statement.where(Target.province == province)
+        
+        # Sector filter
+        if sector:
+            statement = statement.where(Target.sector.ilike(f"%{sector}%"))
+        
+        # Has email filter
+        if has_email == "true":
+            statement = statement.where(Target.general_email.isnot(None))
+        elif has_email == "false":
+            statement = statement.where(Target.general_email.is_(None))
+        
+        # Search by name, email, website, notes
         if search:
             like_term = f"%{search}%"
-            statement = statement.where(
-                or_(Target.name.ilike(like_term), Target.sector.ilike(like_term))
+            conditions = [
+                Target.name.ilike(like_term),
+                Target.general_email.ilike(like_term),
+                Target.website.ilike(like_term),
+                Target.sector.ilike(like_term),
+                Target.notes.ilike(like_term),
+            ]
+            normalized = normalize_search_term(search)
+            if normalized:
+                conditions.append(
+                    normalized_text_expr(Target.name).like(f"%{normalized}%")
+                )
+            statement = statement.where(or_(*conditions))
+        
+        # Role filter - filter targets that have contacts with specific role
+        if role and role.strip():  # Check for non-empty string
+            subquery = select(Contact.target_id).where(
+                or_(
+                    Contact.role.ilike(f"%{role}%"),
+                    Contact.role_en.ilike(f"%{role}%"),
+                )
             )
-        targets = session.exec(statement.order_by(Target.created_at.desc())).all()
+            statement = statement.where(Target.id.in_(subquery))
+        
+        # Count total before pagination
+        total = session.exec(select(func.count()).select_from(statement.subquery())).one()
+        
+        # Apply pagination
+        page_size = 20
+        offset = (page - 1) * page_size
+        targets = session.exec(
+            statement.order_by(Target.created_at.desc())
+            .offset(offset)
+            .limit(page_size)
+        ).all()
 
         pipeline = (
             session.exec(
@@ -100,6 +221,25 @@ def list_targets(
             ).all()
         )
         pipeline_counts = {status: count for status, count in pipeline}
+        
+        # Get unique provinces and sectors for filter dropdowns
+        provinces = sorted(set(
+            t[0] for t in session.exec(select(Target.province).distinct()).all() if t[0]
+        ))
+        sectors = sorted(set(
+            t[0] for t in session.exec(select(Target.sector).distinct()).all() if t[0]
+        ))
+        
+        # Get unique roles for role filter
+        roles = sorted(set(
+            r for r in session.exec(select(Contact.role_en).distinct().where(Contact.role_en.isnot(None))).all()
+            if r
+        ))
+
+    # Calculate pagination
+    total_pages = (total + page_size - 1) // page_size
+    has_prev = page > 1
+    has_next = page < total_pages
 
     return templates.TemplateResponse(
         "targets_list.html",
@@ -108,9 +248,28 @@ def list_targets(
             "targets": targets,
             "pipeline_counts": pipeline_counts,
             "message": message,
-            "filters": {"type": target_type, "status": status, "search": search},
+            "filters": {
+                "type": target_type,
+                "status": status,
+                "search": search,
+                "province": province,
+                "sector": sector,
+                "role": role,
+                "has_email": has_email,
+            },
             "target_types": list(TargetType),
             "target_statuses": list(TargetStatus),
+            "provinces": provinces,
+            "sectors": sectors,
+            "roles": roles,
+            "pagination": {
+                "current_page": page,
+                "total_pages": total_pages,
+                "total_results": total,
+                "page_size": page_size,
+                "has_prev": has_prev,
+                "has_next": has_next,
+            },
         },
     )
 
@@ -287,6 +446,19 @@ def create_outreach_event(
         body = custom_body.strip() if custom_body else ""
         if not body:
             body = render_template_text(template_filename, context)
+        
+        # Send email if channel is email and we have an email address
+        if channel == OutreachChannel.email:
+            email_to = None
+            if contact and contact.email:
+                email_to = contact.email
+            elif target.general_email:
+                email_to = target.general_email
+            if email_to:
+                email_sent = send_email(email_to, subject or "Outreach", body)
+                if not email_sent:
+                    logger.warning(f"Email not sent to {email_to} - SMTP not configured")
+        
         event = OutreachEvent(
             target_id=target_id,
             contact_id=contact_id,
@@ -394,6 +566,99 @@ def export_targets() -> StreamingResponse:
     output.seek(0)
     headers = {"Content-Disposition": "attachment; filename=targets_export.csv"}
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers=headers)
+
+
+@app.get("/contacts", response_class=HTMLResponse)
+def list_contacts(
+    request: Request,
+    search: str = "",
+    role: str = "",
+    has_email: str = "",
+    page: int = 1,
+) -> HTMLResponse:
+    """List contacts with filtering and search."""
+    
+    with get_session() as session:
+        # Build base query
+        statement = select(Contact)
+        
+        # Text search - name, email, phone, linkedin
+        if search:
+            like_term = f"%{search}%"
+            conditions = [
+                Contact.full_name.ilike(like_term),
+                Contact.email.ilike(like_term),
+                Contact.phone.ilike(like_term),
+                Contact.linkedin_url.ilike(like_term),
+            ]
+            normalized = normalize_search_term(search)
+            if normalized:
+                conditions.append(
+                    normalized_text_expr(Contact.full_name).like(f"%{normalized}%")
+                )
+            statement = statement.where(or_(*conditions))
+        
+        # Role filter
+        if role:
+            statement = statement.where(
+                or_(
+                    Contact.role.ilike(f"%{role}%"),
+                    Contact.role_en.ilike(f"%{role}%"),
+                )
+            )
+        
+        # Email filter
+        if has_email == "true":
+            statement = statement.where(Contact.email.isnot(None))
+        elif has_email == "false":
+            statement = statement.where(Contact.email.is_(None))
+        
+        # Count total before pagination
+        total = session.exec(select(func.count()).select_from(statement.subquery())).one()
+        
+        # Apply pagination
+        page_size = 20
+        offset = (page - 1) * page_size
+        contacts = session.exec(
+            statement.order_by(Contact.full_name)
+            .offset(offset)
+            .limit(page_size)
+        ).all()
+        
+        # Get unique roles for filter dropdown
+        roles = sorted(set(
+            r for r in session.exec(select(Contact.role_en).distinct().where(Contact.role_en.isnot(None))).all()
+            if r
+        ))
+        
+        # Calculate pagination
+        page_size = 20
+        total_pages = (total + page_size - 1) // page_size
+        has_prev = page > 1
+        has_next = page < total_pages
+        
+        return templates.TemplateResponse(
+            "contacts_list.html",
+            {
+                "request": request,
+                "contacts": contacts,
+                "total_results": total,
+                "message": "",
+                "filters": {
+                    "search": search,
+                    "role": role,
+                    "has_email": has_email,
+                },
+                "roles": roles,
+                "pagination": {
+                    "current_page": page,
+                    "total_pages": total_pages,
+                    "total_results": total,
+                    "has_prev": has_prev,
+                    "has_next": has_next,
+                },
+            },
+        )
 
 
 @app.get("/health")

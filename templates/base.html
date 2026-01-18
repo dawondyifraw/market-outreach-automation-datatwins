@@ -1,140 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ title or "Outreach CRM" }}</title>
+    <title>{{ title or "DataTwinLabs - Outreach CRM" }}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             color-scheme: light;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            --primary: #007AFF;
+            --primary-light: #5AC8FA;
+            --primary-dark: #0051D5;
+            --secondary: #5E5E5E;
+            --success: #34C759;
+            --warning: #FF9500;
+            --error: #FF3B30;
+            --background: #FFFFFF;
+            --surface: #F2F2F7;
+            --surface-2: #EBEBF0;
+            --text-primary: #000000;
+            --text-secondary: #3C3C43;
+            --text-tertiary: #8E8E93;
+            --border: #D1D1D6;
         }
+
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html,
         body {
-            margin: 0;
-            background: #f5f7fb;
-            color: #1f2937;
+            height: 100%;
         }
+
+        body {
+            background: var(--surface);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* iOS-style header */
         header {
-            background: #111827;
-            color: #fff;
-            padding: 1.25rem 2rem;
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
         }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header nav {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
         header a {
-            color: #fff;
+            color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 500;
+            transition: color 0.2s;
+            font-size: 0.95rem;
         }
+
+        header a:hover {
+            color: var(--primary-dark);
+        }
+
         main {
-            padding: 2rem;
-            max-width: 1100px;
+            padding: 1.5rem;
+            max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
+            flex: 1;
         }
+
+        /* iOS-style card */
         .card {
-            background: #fff;
+            background: var(--background);
             border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
         }
+
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+        }
+
         .grid {
             display: grid;
-            gap: 1rem;
+            gap: 0.75rem;
         }
-        .grid-2 {
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
+
+        /* iOS-style table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            background: var(--background);
         }
-        th, td {
+
+        th {
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.875rem;
             text-align: left;
-            padding: 0.75rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
             font-size: 0.95rem;
         }
-        th {
-            color: #6b7280;
-            font-weight: 600;
+
+        tr:last-child td {
+            border-bottom: none;
         }
+
+        tr:hover {
+            background: var(--surface);
+        }
+
+        /* iOS-style tags */
         .tag {
             display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 999px;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
             font-size: 0.8rem;
             font-weight: 600;
-            background: #e0f2fe;
-            color: #075985;
+            background: var(--primary);
+            color: white;
         }
-        .tag.status {
-            background: #ede9fe;
-            color: #5b21b6;
+
+        .tag.status-new {
+            background: var(--primary);
         }
-        .actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+
+        .tag.status-contacted {
+            background: var(--primary-light);
         }
+
+        .tag.status-replied {
+            background: var(--success);
+        }
+
+        .tag.status-meeting {
+            background: var(--warning);
+        }
+
+        .tag.status-won {
+            background: var(--success);
+        }
+
+        .tag.status-lost {
+            background: var(--error);
+        }
+
+        /* iOS-style buttons */
         .btn {
             display: inline-block;
-            padding: 0.5rem 0.9rem;
+            padding: 0.625rem 1rem;
             border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            background: #111827;
-            color: #fff;
+            border: none;
+            background: var(--primary);
+            color: white;
             font-weight: 600;
             text-decoration: none;
             cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
         }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.02);
+        }
+
         .btn.secondary {
-            background: #fff;
-            color: #111827;
+            background: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--primary);
         }
+
+        .btn.secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
         .btn.small {
-            padding: 0.35rem 0.6rem;
+            padding: 0.375rem 0.75rem;
             font-size: 0.85rem;
         }
+
+        /* iOS-style input */
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.375rem;
+        }
+
+        .notice {
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .muted {
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+        }
+
         form.inline {
             display: inline;
         }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.6rem 0.75rem;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            font-size: 0.95rem;
+
+        /* Pagination iOS style */
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
         }
-        label {
-            font-weight: 600;
+
+        .pagination a,
+        .pagination span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.5rem;
+            height: 2.5rem;
+            padding: 0 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--background);
+            color: var(--primary);
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
             font-size: 0.9rem;
         }
-        .muted {
-            color: #6b7280;
-            font-size: 0.9rem;
+
+        .pagination a:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
         }
-        .notice {
-            background: #ecfeff;
-            border-left: 4px solid #06b6d4;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+
+        .pagination span {
+            color: var(--text-secondary);
+            background: var(--surface);
+            border-color: var(--border);
+            cursor: default;
+        }
+
+        .pagination .current {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            font-weight: 700;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            background: var(--background);
+            flex-shrink: 0;
         }
     </style>
 </head>
+
 <body>
     <header>
-        <div>
-            <a href="/targets">Outreach CRM</a>
-        </div>
-        <nav class="actions">
-            <a class="btn secondary" href="/targets">Targets</a>
-            <a class="btn secondary" href="/export/targets">Export CSV</a>
+        <h1>📊 DataTwinLabs</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/targets">Targets</a>
+            <a href="/contacts">Contacts</a>
+            <a href="/imports">Import</a>
+            <a href="/export/targets" class="btn small">📥 Export</a>
         </nav>
     </header>
     <main>
         {% block content %}{% endblock %}
     </main>
+    <footer>
+        © 2026 DataTwinLabs. Market Outreach Platform.
+    </footer>
 </body>
+
 </html>
