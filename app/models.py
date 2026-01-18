@@ -32,15 +32,27 @@ class OutreachOutcome(str, Enum):
     rejected = "rejected"
 
 
+class ConfidenceScore(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+
 class Target(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     type: TargetType
     sector: Optional[str] = None
+    province: Optional[str] = None
     website: Optional[str] = None
+    general_email: Optional[str] = None
+    phone: Optional[str] = None
+    source: Optional[str] = None
     notes: Optional[str] = None
     status: TargetStatus = Field(default=TargetStatus.new)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    imported_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     contacts: list["Contact"] = Relationship(back_populates="target")
     outreach_events: list["OutreachEvent"] = Relationship(back_populates="target")
@@ -52,9 +64,12 @@ class Contact(SQLModel, table=True):
     target_id: int = Field(foreign_key="target.id")
     full_name: str
     role: Optional[str] = None
+    role_en: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
     linkedin_url: Optional[str] = None
+    confidence_score: ConfidenceScore = Field(default=ConfidenceScore.low)
+    updated_at: Optional[datetime] = None
 
     target: Optional[Target] = Relationship(back_populates="contacts")
     outreach_events: list["OutreachEvent"] = Relationship(back_populates="contact")
@@ -82,3 +97,39 @@ class FollowUp(SQLModel, table=True):
     done: bool = Field(default=False)
 
     target: Optional[Target] = Relationship(back_populates="followups")
+
+
+class ImportLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    import_type: str
+    inserted: int
+    updated: int
+    skipped: int
+    failed: int
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class DncEntry(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str
+    reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LeadSuggestion(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    target_id: int = Field(foreign_key="target.id")
+    suggestion: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    target: Optional[Target] = Relationship()
+
+
+class OutreachDraft(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    target_id: int = Field(foreign_key="target.id")
+    subject: str
+    body: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    target: Optional[Target] = Relationship()

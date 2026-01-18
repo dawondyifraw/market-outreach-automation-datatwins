@@ -1,69 +1,70 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- Header Card -->
 <div class="card">
-    <h1>Targets</h1>
-    <p class="muted">Track employers and municipalities, manage outreach, and stay on top of follow-ups.</p>
+    <h1 style="margin: 0; font-size: 1.5rem;">🎯 Targets</h1>
+    <p class="muted">Manage 342 municipalities across 12 provinces. Advanced filtering and segmentation.</p>
     {% if message %}
     <div class="notice">{{ message }}</div>
     {% endif %}
 </div>
 
+<!-- Pipeline Overview -->
 <div class="card">
-    <h2>Pipeline overview</h2>
-    <div class="grid grid-2">
+    <h2>📊 Pipeline Overview</h2>
+    <div class="grid grid-3">
         {% for status in target_statuses %}
-        <div>
+        <div style="padding: 1rem; background: var(--surface); border-radius: 8px; text-align: center;">
             <div class="muted">{{ status.value | replace("_", " ") | title }}</div>
-            <div class="tag status">{{ pipeline_counts.get(status, 0) }}</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem;">
+                {{ pipeline_counts.get(status, 0) }}
+            </div>
         </div>
         {% endfor %}
     </div>
 </div>
 
+<!-- Search & Filter -->
 <div class="card">
-    <h2>Filters</h2>
-    <form method="get" class="grid grid-2">
+    <h2>🔍 Search & Filter</h2>
+    <form method="get" class="grid grid-3" style="gap: 1rem;">
+        <!-- Municipality Name -->
+        <div style="grid-column: 1 / 2;">
+            <label for="search">Municipality Name</label>
+            <input type="text" name="search" id="search" value="{{ filters.search or '' }}"
+                placeholder="Search by name..." />
+        </div>
+
+        <!-- Role -->
         <div>
-            <label for="type">Type</label>
-            <select name="target_type" id="type">
-                <option value="">All</option>
-                {% for value in target_types %}
-                <option value="{{ value.value }}" {% if filters.type == value.value %}selected{% endif %}>
-                    {{ value.value | title }}
-                </option>
+            <label for="role">Role</label>
+            <select name="role" id="role">
+                <option value="">All Roles</option>
+                {% for r in roles %}
+                <option value="{{ r }}" {% if filters.role==r %}selected{% endif %}>{{ r }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div>
-            <label for="status">Status</label>
-            <select name="status" id="status">
-                <option value="">All</option>
-                {% for value in target_statuses %}
-                <option value="{{ value.value }}" {% if filters.status == value.value %}selected{% endif %}>
-                    {{ value.value | replace("_", " ") | title }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="search">Search</label>
-            <input type="text" name="search" id="search" value="{{ filters.search or '' }}" placeholder="Name or sector" />
-        </div>
-        <div style="display:flex; align-items:flex-end;">
-            <button class="btn" type="submit">Apply</button>
+
+        <!-- Buttons -->
+        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+            <button class="btn" type="submit">🔍 Filter</button>
+            <a href="/targets" class="btn secondary">Clear</a>
         </div>
     </form>
 </div>
 
+<!-- Add Target Card -->
 <div class="card">
-    <h2>Add target</h2>
-    <form method="post" action="/targets" class="grid grid-2">
+    <h2>➕ Add New Target</h2>
+    <form method="post" action="/targets" class="grid grid-3">
         <div>
-            <label for="name">Name</label>
+            <label for="name">Name *</label>
             <input name="name" id="name" required />
         </div>
         <div>
-            <label for="type-create">Type</label>
+            <label for="type-create">Type *</label>
             <select name="type" id="type-create" required>
                 {% for value in target_types %}
                 <option value="{{ value.value }}">{{ value.value | title }}</option>
@@ -78,67 +79,137 @@
             <label for="website">Website</label>
             <input name="website" id="website" />
         </div>
-        <div class="grid" style="grid-column:1/-1;">
+        <div style="grid-column: 1 / -1;">
             <label for="notes">Notes</label>
-            <textarea name="notes" id="notes" rows="3"></textarea>
+            <textarea name="notes" id="notes" rows="2"></textarea>
         </div>
-        <div>
-            <button class="btn" type="submit">Save target</button>
+        <div style="grid-column: 1 / -1;">
+            <button class="btn" type="submit">Save Target</button>
         </div>
     </form>
 </div>
 
+<!-- Import Data Card -->
 <div class="card">
-    <h2>Import data</h2>
-    <div class="grid grid-2">
+    <h2>📤 Import Data</h2>
+    <div class="grid grid-3">
         <form method="post" action="/import/targets" enctype="multipart/form-data">
             <label>Targets CSV</label>
             <input type="file" name="file" accept=".csv" required />
             <p class="muted">Headers: name,type,sector,website,notes,status</p>
-            <button class="btn secondary" type="submit">Import targets</button>
+            <button class="btn secondary" type="submit">📥 Import Targets</button>
         </form>
         <form method="post" action="/import/contacts" enctype="multipart/form-data">
             <label>Contacts CSV</label>
             <input type="file" name="file" accept=".csv" required />
             <p class="muted">Headers: target_id,full_name,role,email,phone,linkedin_url</p>
-            <button class="btn secondary" type="submit">Import contacts</button>
+            <button class="btn secondary" type="submit">📥 Import Contacts</button>
         </form>
     </div>
 </div>
 
+<!-- Results Card with Table -->
 <div class="card">
-    <h2>Targets list</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Sector</th>
-                <th>Website</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for target in targets %}
-            <tr>
-                <td>{{ target.name }}</td>
-                <td><span class="tag">{{ target.type.value | title }}</span></td>
-                <td><span class="tag status">{{ target.status.value | replace("_", " ") | title }}</span></td>
-                <td>{{ target.sector or '-' }}</td>
-                <td>
-                    {% if target.website %}
-                    <a href="{{ target.website }}" target="_blank">{{ target.website }}</a>
-                    {% else %}-{% endif %}
-                </td>
-                <td><a class="btn small" href="/targets/{{ target.id }}">View</a></td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" class="muted">No targets yet. Add or import some to get started.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2>📋 Targets List</h2>
+    <div class="muted" style="margin-bottom: 1rem;">
+        <strong>{{ pagination.total_results }}</strong> results found • Page <strong>{{ pagination.current_page
+            }}</strong> of <strong>{{ pagination.total_pages }}</strong>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Province</th>
+                    <th>Sector</th>
+                    <th>Website</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for target in targets %}
+                <tr>
+                    <td><strong>{{ target.name }}</strong></td>
+                    <td><span class="tag">{{ target.type.value | title }}</span></td>
+                    <td><span class="tag tag-status-{{ target.status.value }}">{{ target.status.value | replace("_", "
+                            ") | title }}</span></td>
+                    <td>{{ target.province or '-' }}</td>
+                    <td>{{ target.sector or '-' }}</td>
+                    <td>
+                        {% if target.website %}
+                        <a href="{{ target.website }}" target="_blank" style="color: var(--primary);">Link →</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <a class="btn small" href="/targets/{{ target.id }}" style="white-space: nowrap;">View</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-tertiary);">
+                        No targets found. <a href="/targets" style="color: var(--primary);">Clear filters</a> or add new
+                        targets.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- iOS-style Pagination -->
+    {% if pagination.total_pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a
+            href="/targets?page={{ pagination.current_page - 1 }}&search={{ filters.search or '' }}&target_type={{ filters.type or '' }}&status={{ filters.status or '' }}&province={{ filters.province or '' }}&sector={{ filters.sector or '' }}&role={{ filters.role or '' }}">←
+            Previous</a>
+        {% else %}
+        <span>← Previous</span>
+        {% endif %}
+
+        <!-- Page numbers -->
+        {% if pagination.current_page > 2 %}
+        <a
+            href="/targets?page=1&search={{ filters.search or '' }}&target_type={{ filters.type or '' }}&status={{ filters.status or '' }}&province={{ filters.province or '' }}&sector={{ filters.sector or '' }}&role={{ filters.role or '' }}">1</a>
+        {% endif %}
+
+        {% if pagination.current_page > 3 %}
+        <span>...</span>
+        {% endif %}
+
+        {% if pagination.current_page > 1 %}
+        <a
+            href="/targets?page={{ pagination.current_page - 1 }}&search={{ filters.search or '' }}&target_type={{ filters.type or '' }}&status={{ filters.status or '' }}&province={{ filters.province or '' }}&sector={{ filters.sector or '' }}&role={{ filters.role or '' }}">{{
+            pagination.current_page - 1 }}</a>
+        {% endif %}
+
+        <span class="current">{{ pagination.current_page }}</span>
+
+        {% if pagination.current_page < pagination.total_pages %} <a
+            href="/targets?page={{ pagination.current_page + 1 }}&search={{ filters.search or '' }}&target_type={{ filters.type or '' }}&status={{ filters.status or '' }}&province={{ filters.province or '' }}&sector={{ filters.sector or '' }}&role={{ filters.role or '' }}">
+            {{ pagination.current_page + 1 }}</a>
+            {% endif %}
+
+            {% if pagination.current_page < pagination.total_pages - 2 %} <span>...</span>
+                {% endif %}
+
+                {% if pagination.current_page < pagination.total_pages - 1 %} <a
+                    href="/targets?page={{ pagination.total_pages }}&search={{ filters.search or '' }}&target_type={{ filters.type or '' }}&status={{ filters.status or '' }}&province={{ filters.province or '' }}&sector={{ filters.sector or '' }}&role={{ filters.role or '' }}">
+                    {{ pagination.total_pages }}</a>
+                    {% endif %}
+
+                    {% if pagination.has_next %}
+                    <a
+                        href="/targets?page={{ pagination.current_page + 1 }}&search={{ filters.search or '' }}&target_type={{ filters.type or '' }}&status={{ filters.status or '' }}&province={{ filters.province or '' }}&sector={{ filters.sector or '' }}&role={{ filters.role or '' }}">Next
+                        →</a>
+                    {% else %}
+                    <span>Next →</span>
+                    {% endif %}
+    </div>
+    {% endif %}
 </div>
+
 {% endblock %}

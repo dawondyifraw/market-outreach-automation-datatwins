@@ -1,0 +1,11 @@
+target_id,full_name,role,email,phone,linkedin_url
+1,Jan van Dijk,Chief Technology Officer,jan.vandijk@example.com,+31 6 1234567,https://linkedin.com/in/jvandijk
+1,Maria Garcia,Innovation Director,maria.garcia@example.com,+31 6 2345678,https://linkedin.com/in/mgarcia
+2,Peter Hendriks,Procurement Manager,peter.h@example.com,+31 6 3456789,https://linkedin.com/in/phendriks
+2,Lisa Ahmed,Sustainability Lead,lisa.ahmed@example.com,+31 6 4567890,https://linkedin.com/in/lahmed
+3,Robert Schmidt,Director of Technology,r.schmidt@example.com,+31 6 5678901,https://linkedin.com/in/rschmidt
+3,Sophie Martin,Partnership Manager,s.martin@example.com,,https://linkedin.com/in/smartin
+4,Tom Johnson,Chief Strategy Officer,tom@techcorp.example.com,+1 555 123 4567,https://linkedin.com/in/tjohnson
+4,Elena Rodriguez,VP Product,elena@techcorp.example.com,+1 555 234 5678,
+5,Ahmed Hassan,Sustainability Officer,ahmed@greenenergy.example.com,+31 6 6789012,https://linkedin.com/in/ahassan
+6,Carla Bergström,CEO,carla@smartcity.example.com,+46 8 1234567,https://linkedin.com/in/cbergstrom
